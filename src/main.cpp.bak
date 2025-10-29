@@ -1,0 +1,33 @@
+#include <Wire.h>
+#include <LoRa.h>
+#include "telemetry_structs.h"
+
+TelemetryPacket pkt;
+
+void receiveEvent(int numBytes) {
+    if (numBytes == sizeof(TelemetryPacket)) {
+        Wire.readBytes((char*)&pkt, sizeof(pkt));
+
+        uint8_t crc = 0;
+        for (int i = 0; i < sizeof(pkt)-1; i++) crc ^= ((uint8_t*)&pkt)[i];
+        if (crc == pkt.crc) {
+            // Forward valid packet via LoRa
+            LoRa.beginPacket();
+            LoRa.write((uint8_t*)&pkt, sizeof(pkt));
+            LoRa.endPacket();
+        }
+    } else {
+        // flush buffer
+        while (Wire.available()) Wire.read();
+    }
+}
+
+void setup() {
+    Wire.begin(0x42);   // join I2C as slave at address 0x42
+    Wire.onReceive(receiveEvent);
+    LoRa.begin(915E6);  // set your frequency
+}
+
+void loop() {
+    // nothing — handled in interrupt
+}
