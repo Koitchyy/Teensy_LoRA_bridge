@@ -4,7 +4,6 @@
 #include "lora.h"
 
 TelemetryPacket pkt;
-
 Lora lora;
 
 void receiveEvent(int numBytes)
@@ -29,7 +28,6 @@ void receiveEvent(int numBytes)
 
     Serial.println("Packet received");
     Serial.println(pkt.toCSV());
-    lora.send(pkt);
 }
 
 void setup()
@@ -45,4 +43,7 @@ void setup()
     Serial.println("Teensy I2C telemetry listener @0x42 ready");
 }
 
-void loop() {}
+void loop()
+{
+    lora.send(pkt);
+}

@@ -53,9 +53,11 @@ void Lora::init()
 void Lora::send(const TelemetryPacket &packet)
 {
     String csv = packet.toCSV();
+    char buf[256];
+    snprintf(buf, sizeof(buf), "%s", csv.c_str());
+    uint8_t len = min(strlen(buf), (size_t)(RH_RF95_MAX_MESSAGE_LEN));
     Serial.println("Sending packet");
-    rf95->send((uint8_t *)csv.c_str(), csv.length());
-    Serial.println("Packet sent");
+    Serial.println(buf);
+    rf95->send((uint8_t *)buf, len);
     rf95->waitPacketSent();
-    Serial.println("Packet sent and acknowledged");
 }
