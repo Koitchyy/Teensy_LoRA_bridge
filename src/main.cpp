@@ -1,8 +1,10 @@
 #define I2C_BUFFER_LENGTH 128
 #include <Wire.h>
 #include "telStruct.h"
+#include <RH_RF95.h>
 
 TelemetryPacket pkt;
+RH_RF95 *rf95;
 
 void receiveEvent(int numBytes) {
     if (numBytes != sizeof(pkt)) {
@@ -47,6 +49,35 @@ void setup() {
     Wire.begin(0x42);
     Wire.onReceive(receiveEvent);
     Serial.println("Teensy I2C telemetry listener @0x42 ready");
+
+    rf95 = new RH_RF95(10, 2);
+
+    Serial.println("LoRa radio initializing");
+    pinMode(9, OUTPUT);
+    digitalWrite(9, LOW);
+    delay(50);
+    digitalWrite(9, HIGH);
+    delay(100);
+
+    Serial.println(rf95->init());
+    if (!rf95->init())
+    {
+        Serial.println("LoRa radio init failed");
+        while (1)
+            ;
+    }
+
+    if (!rf95->setFrequency(915.0))
+    {
+        Serial.println("setFrequency failed");
+        while (1)
+            ;
+    }
+
+    rf95->setTxPower(13, false);
+    Serial.println("LoRa radio initialized");
 }
 
-void loop() {}
+void loop() {
+    //Serial.println("ho");
+}
