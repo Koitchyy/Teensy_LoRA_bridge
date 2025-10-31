@@ -52,11 +52,12 @@ void Lora::init()
 
 void Lora::sendCSV(const char *csvBuffer)
 {
-    uint8_t len = min(strlen(csvBuffer), (size_t)(RH_RF95_MAX_MESSAGE_LEN));
+    uint8_t len = strlen(csvBuffer);
+    if (len > RH_RF95_MAX_MESSAGE_LEN)
+    {
+        len = RH_RF95_MAX_MESSAGE_LEN;
+    }
 
     rf95->send((uint8_t *)csvBuffer, len);
-    if (!rf95->waitPacketSent(1000))
-    {
-        Serial.println("Warning: Packet send timeout");
-    }
+    rf95->waitPacketSent();
 }
