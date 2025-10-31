@@ -9,7 +9,6 @@ TelemetryPacket *pkt;
 Lora *lora;
 
 Threads::Mutex packetMutex;
-Threads::Mutex spiMutex;
 
 void receiveEvent(int numBytes)
 {
@@ -51,16 +50,14 @@ void loraThread()
         pkt->toCSV(csvBuffer, sizeof(csvBuffer));
         packetMutex.unlock();
 
-        spiMutex.lock();
         Serial.println(i);
         Serial.println("Sending packet");
         csvBuffer[255] = 0;
         i++;
 
         lora->sendCSV(csvBuffer);
-        spiMutex.unlock();
 
-        threads.delay(10);
+        threads.delay(1000);
     }
 }
 
@@ -72,10 +69,7 @@ void setup()
 
     pkt = new TelemetryPacket();
     lora = new Lora();
-
-    spiMutex.lock();
     lora->init();
-    spiMutex.unlock();
 
     Wire.begin(0x42);
     Wire.setClock(100000);

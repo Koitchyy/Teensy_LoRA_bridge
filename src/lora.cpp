@@ -59,5 +59,5 @@ void Lora::sendCSV(const char *csvBuffer)
     }
 
     rf95->send((uint8_t *)csvBuffer, len);
-    rf95->waitPacketSent();
+    rf95->waitPacketSent(1000);
 }
