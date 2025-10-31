@@ -23,7 +23,7 @@ public:
         float RF95_FREQ = 915.0);
     ~Lora();
     void init();
-    void send(const TelemetryPacket &packet);
+    void sendCSV(const char *csvData);
 };
 
 #endif

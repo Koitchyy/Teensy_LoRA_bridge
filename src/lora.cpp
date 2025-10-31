@@ -56,8 +56,10 @@ void Lora::send(const TelemetryPacket &packet)
     char buf[256];
     snprintf(buf, sizeof(buf), "%s", csv.c_str());
     uint8_t len = min(strlen(buf), (size_t)(RH_RF95_MAX_MESSAGE_LEN));
-    Serial.println("Sending packet");
-    Serial.println(buf);
+
     rf95->send((uint8_t *)buf, len);
-    rf95->waitPacketSent();
+    if (!rf95->waitPacketSent(1000))
+    {
+        Serial.println("Warning: Packet send timeout");
+    }
 }
