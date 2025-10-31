@@ -16,13 +16,16 @@ struct TelemetryPacket
 
     void toCSV(char *buffer, size_t bufferSize) const
     {
+        memset(buffer, 0, bufferSize);
+
         snprintf(
-            buffer, bufferSize, "%lu,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%u",
-            time_ms, accel_x, accel_y, accel_z,
+            buffer, bufferSize, "%lu,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%u",
+            time_ms,
             accel_x_high_g, accel_y_high_g, accel_z_high_g,
             pressure, temperature, altitude,
             bno_x, bno_y, bno_z,
-            bno_i, bno_j, bno_k, bno_real, state);
+            bno_i, bno_j, bno_k,
+            bno_real, state);
     }
 } __attribute__((packed));
 
