@@ -5,17 +5,15 @@
 #include "telStruct.h"
 #include "lora.h"
 
-TelemetryPacket *pkt;
-Lora *lora;
+TelemetryPacket pkt;
+volatile bool newPacketAvailable = false;
 
-Threads::Mutex packetMutex;
+Lora *lora;
 
 void receiveEvent(int numBytes)
 {
-    if (numBytes != sizeof(*pkt))
+    if (numBytes != sizeof(pkt))
     {
-        Serial.print("Unexpected packet size: ");
-        Serial.println(numBytes);
         while (Wire.available())
             Wire.read();
         return;
@@ -27,15 +25,13 @@ void receiveEvent(int numBytes)
     uint8_t crcCalc = computeCRC((uint8_t *)&tempPkt, sizeof(tempPkt) - 1);
     if (crcCalc != tempPkt.crc)
     {
-        Serial.println("CRC mismatch!");
         return;
     }
 
-    packetMutex.lock();
-    *pkt = tempPkt;
-    packetMutex.unlock();
-
-    Serial.println("Packet received");
+    noInterrupts();
+    pkt = tempPkt;
+    newPacketAvailable = true;
+    interrupts();
 }
 
 int i = 0;
@@ -46,16 +42,26 @@ void loraThread()
 
     while (true)
     {
-        packetMutex.lock();
-        pkt->toCSV(csvBuffer, sizeof(csvBuffer));
-        packetMutex.unlock();
+        if (newPacketAvailable)
+        {
+            noInterrupts();
+            TelemetryPacket localPkt = pkt;
+            newPacketAvailable = false;
+            interrupts();
 
-        Serial.println(i);
-        Serial.println("Sending packet");
-        csvBuffer[255] = 0;
-        i++;
+            localPkt.toCSV(csvBuffer, sizeof(csvBuffer));
+            csvBuffer[255] = 0;
 
-        lora->sendCSV(csvBuffer);
+            Serial.print("Sending packet #");
+            Serial.println(i);
+            i++;
+
+            lora->sendCSV(csvBuffer);
+        }
+        else
+        {
+            Serial.println("No new packet yet");
+        }
 
         threads.delay(1000);
     }
@@ -63,20 +69,22 @@ void loraThread()
 
 void setup()
 {
+    delay(5000);
+
     Serial.begin(115200);
     while (!Serial && millis() < 3000)
         ;
 
-    pkt = new TelemetryPacket();
     lora = new Lora();
     lora->init();
 
     Wire.begin(0x42);
     Wire.setClock(100000);
     Wire.onReceive(receiveEvent);
+
     Serial.println("Teensy I2C telemetry listener @0x42 ready");
 
-    threads.addThread(loraThread, 0, 2048);
+    threads.addThread(loraThread, 0, 32768);
     Serial.println("LoRa thread started");
 }
 
