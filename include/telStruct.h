@@ -14,19 +14,6 @@ struct TelemetryPacket
     uint8_t state;
     uint8_t crc;
 
-    static TelemetryPacket fromCSV(const String &csv)
-    {
-        TelemetryPacket packet = {};
-        sscanf(
-            csv.c_str(), "%lu,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%hhu",
-            &packet.time_ms, &packet.accel_x, &packet.accel_y, &packet.accel_z,
-            &packet.accel_x_high_g, &packet.accel_y_high_g, &packet.accel_z_high_g,
-            &packet.pressure, &packet.temperature, &packet.altitude,
-            &packet.bno_x, &packet.bno_y, &packet.bno_z,
-            &packet.bno_i, &packet.bno_j, &packet.bno_k, &packet.bno_real, &packet.state);
-        return packet;
-    }
-
     void toCSV(char *buffer, size_t bufferSize) const
     {
         snprintf(
@@ -36,39 +23,6 @@ struct TelemetryPacket
             pressure, temperature, altitude,
             bno_x, bno_y, bno_z,
             bno_i, bno_j, bno_k, bno_real, state);
-    }
-
-    String toString() const
-    {
-        char buf[384];
-        snprintf(
-            buf, sizeof(buf),
-            "Time: %lums\n"
-            "ADXL345: %.2f,%.2f,%.2f\n"
-            "ADXL375: %.2f,%.2f,%.2f\n"
-            "Pressure: %.2f Pa, Temp: %.2f C, Alt: %.2f m\n"
-            "BNO055: %.2f,%.2f,%.2f\n"
-            "Quat: %.2f,%.2f,%.2f,%.2f\n"
-            "State: %u",
-            time_ms,
-            accel_x, accel_y, accel_z,
-            accel_x_high_g, accel_y_high_g, accel_z_high_g,
-            pressure, temperature, altitude,
-            bno_x, bno_y, bno_z,
-            bno_i, bno_j, bno_k, bno_real,
-            state);
-        return String(buf);
-    }
-
-    bool verifyCRC() const
-    {
-        uint8_t calculatedCRC = 0;
-        const uint8_t *data = (const uint8_t *)this;
-        for (size_t i = 0; i < sizeof(TelemetryPacket) - 1; i++)
-        {
-            calculatedCRC ^= data[i];
-        }
-        return calculatedCRC == crc;
     }
 } __attribute__((packed));
 

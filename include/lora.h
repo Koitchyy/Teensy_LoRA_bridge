@@ -13,16 +13,17 @@ private:
     int RFM95_INT;
     float RF95_FREQ;
 
-    RH_RF95 rf95;
+    RH_RF95 *rf95;
 
 public:
     Lora(
         int RFM95_CS = 10,
-        int RFM95_RST = 1,
-        int RFM95_INT = 0,
+        int RFM95_RST = 9,
+        int RFM95_INT = 2,
         float RF95_FREQ = 915.0);
+    ~Lora();
     void init();
-    bool receiveCSV(char *buffer, size_t bufferSize);
+    void sendCSV(const char *csvData);
 };
 
 #endif
