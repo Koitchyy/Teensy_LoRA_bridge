@@ -50,14 +50,11 @@ void Lora::init()
     Serial.println("LoRa radio initialized");
 }
 
-void Lora::send(const TelemetryPacket &packet)
+void Lora::sendCSV(const char *csvBuffer)
 {
-    String csv = packet.toCSV();
-    char buf[256];
-    snprintf(buf, sizeof(buf), "%s", csv.c_str());
-    uint8_t len = min(strlen(buf), (size_t)(RH_RF95_MAX_MESSAGE_LEN));
+    uint8_t len = min(strlen(csvBuffer), (size_t)(RH_RF95_MAX_MESSAGE_LEN));
 
-    rf95->send((uint8_t *)buf, len);
+    rf95->send((uint8_t *)csvBuffer, len);
     if (!rf95->waitPacketSent(1000))
     {
         Serial.println("Warning: Packet send timeout");
